@@ -1,4 +1,22 @@
-#######################
+######## installing Packages ######## 
+
+install.packages("readxl")
+install.packages("xtable")
+install.packages("mctest")
+install.packages("goft")
+install.packages("fitdistrplus")
+install.packages("logspline")
+install.packages("flexsurv")
+install.packages("reldist")
+install.packages("dplyr")
+install.packages("tseries")
+install.packages("regclass")
+install.packages("dplyr")
+install.packages("ggpubr")
+install.packages("SmartEDA")
+
+######## Packages ######## 
+
 library(readxl)
 library(xtable)
 library(mctest)
@@ -8,128 +26,144 @@ library(logspline)
 library(flexsurv)
 library(reldist)
 library(dplyr)
+library(tseries)
+library(regclass)
+library(dplyr)
+library('ggpubr')
+library(SmartEDA)
 
-#######################
-# Loading data:
-data = read_xlsx('C:/Users/bramg/Documents/Education_7.xlsx')
-data.fillna = data
-data.fillna[is.na(data.fillna)] = 0
-highschoolCourses = data.fillna[,2:9]
-uniData = data.fillna[,10:13]
-uniDataBSA = uniData[uniData$`Number of ECT's`>=42,]
-uniDataBSA
+######## Randomness ######## 
 
-#######################
-pairs(mathUni ~. , data = highschoolCourses)
+set.seed(1234)
+
+
+######## Loading Data ######## 
+
+data = read_xlsx('C:/Users/bgn630/Downloads/Education_7.xlsx')
+colnames(data)[12] = 'MathUni'
+colnames(data)[13] = 'DutchUni'
+
+#Saving Variables/ Columns (All)
+highschoolCourses= data[,2:9]
+highschoolCourses.math = data[,2:5]
+highschoolCourses.alpha = data[6:9]
+highschoolCourses.alpha
+
+mathUni = data$MathUni
+dutchUni = data$DutchUni
+
+uniData = data[,10:13]
+uniDataBSA= uniData[uniData$`Number of ECT's`>=42,]
+
+######### Summary ##############
+
+# pairs(mathUni ~. , data = highschoolCourses)
+# pairs(dutchUni ~. , data = highschoolCourses)
+
 summary(data)
 
 mathUni = data.fillna$`Mathematics Univ`
 dutchUni = data.fillna$`Dutch Univ`
 
-grid <- matrix(c(1,2), nrow =1, ncol = 2)
+######### Density Dependent Variables ######### 
+
+grid1 <- matrix(c(1,2), nrow =1, ncol = 2)
 layout(grid)
-plot(denscity(data$`Mathematics Univ`), lwd = 2, main = "Density: Math Uni")
+plot(density(data$MathUni), lwd = 2, main = "Density: Math Uni")
 plot(density(data$`Dutch Univ`), lwd = 2, main = "Density: Dutch Uni")
 
-#######################
 descdist(mathUni, discrete = FALSE)
 descdist(dutchUni, discrete = FALSE)
  
-#######################
-######## Question 1
-# Math Uni
-mathMultipleregression.lm = lm(mathUni~., data = highschoolCourses)
-plot(density(mathMultipleregression.lm$residuals))
-summary(mathMultipleregression.lm)
-mathLRSelection = highschoolCourses[,1:]
-mathMultipleregression2.lm = lm(mathUni~., data = mathLRSelection)
-summary(mathMultipleregression2.lm)
-mean(mathMultipleregression.lm$residuals)
+######### Question 1: Wiskunde vakken ######### 
 
-qqnorm(mathMultipleregression.lm$residuals)
-qqline(mathMultipleregression.lm$residuals, col = "steelblue", lwd = 2)
+pairs(mathUni ~. , data = highschoolCourses.math, panel=panel.smooth)
 
-descdist(mathMultipleregression.lm$residuals, discrete = FALSE)
+mathA.lm = lm(mathUni ~ `Mathematics A` , data = highschoolCourses.math)
+mathC.lm = lm(mathUni ~ `Mathematics C` , data = highschoolCourses.math)
+mathB.lm = lm(mathUni ~ `Mathematics B` , data = highschoolCourses.math)
+mathD.lm = lm(mathUni ~ `Mathematics D` , data = highschoolCourses.math)
+mathBD.lm = lm(mathUni ~ `Mathematics B` + `Mathematics D`, data = highschoolCourses.math)
 
+grid2 <- matrix(c(1:6), nrow =2, ncol = 3)
+layout(grid2)
+qqnorm(mathA.lm$residuals, main= 'mathA.lm')
+qqline(mathA.lm$residuals, col = "steelblue", lwd = 2)
+qqnorm(mathC.lm$residuals, main= 'mathC.lm')
+qqline(mathC.lm$residuals, col = "steelblue", lwd = 2)
+qqnorm(mathB.lm$residuals, main= 'mathB.lm')
+qqline(mathB.lm$residuals, col = "steelblue", lwd = 2)
+qqnorm(mathD.lm$residuals, main= 'mathD.lm')
+qqline(mathD.lm$residuals, col = "steelblue", lwd = 2)
+qqnorm(mathBD.lm$residuals, main= 'mathBD.lm')
+qqline(mathBD.lm$residuals, col = "steelblue", lwd = 2)
 
-# Dutch Uni
-dutchMultipleregression.lm = lm(dutchUni~., data = highschoolCourses)
-summary(dutchMultipleregression.lm)
-plot(density(dutchMultipleregression.lm$residuals))
-mean(dutchMultipleregression.lm$residuals)
-dutchLRSelection = highschoolCourses[,c(1,2,3,5,6,8)]
-dutchMultipleregression2.lm = lm(dutchUni~., data = dutchLRSelection)
-summary(dutchMultipleregression2.lm)
+corMath.data = data.frame(mathUni, highschoolCourses.math)
+corMath.cor = cor(corMath.data, use = "pairwise.complete.obs")
+VIF(mathBD.lm)
 
-qqnorm(dutchMultipleregression.lm$residuals)
-qqline(dutchMultipleregression.lm$residuals, col = "steelblue", lwd = 2)
+######### Question 1: Alpha vakken ######### 
 
-descdist(dutchMultipleregression.lm$residuals, discrete = FALSE)
-
-
-######## Question 2
-# Math Uni
-math2Multipleregression.lm = lm(`Mathematics Univ`~ `Number of ECT's`, data = uniDataBSA)
-summary(math2Multipleregression.lm)
+pairs(dutchUni ~. , data = highschoolCourses.alpha, panel=panel.smooth)
 
 # Dutch Uni
-dutch2Multipleregression.lm = lm(`Dutch Univ`~ `Number of ECT's`, data = uniDataBSA)
-summary(dutch2Multipleregression.lm)
+english.lm = lm(dutchUni ~ `English` , data = highschoolCourses.alpha)
+dutch.lm = lm(dutchUni ~ `Dutch` , data = highschoolCourses.alpha)
+latin.lm = lm(dutchUni ~ `Latin` , data = highschoolCourses.alpha)
+greek.lm = lm(dutchUni ~ `Greek` , data = highschoolCourses.alpha)
+englishDutch.lm = lm(dutchUni ~ `English` + `Dutch`, data = highschoolCourses.alpha)
+latinGreek.lm = lm(dutchUni ~ `Latin` + `Greek`, data = highschoolCourses.alpha)
 
-#######################
-cor_data = data.frame(highschoolCourses, data.fillna[,11:13])
-cor_data.cor = round(cor(cor_data),2)
-write.csv(cor_data.cor, 'C:/Users/bramg/Documents/correlation.csv')
+summary(english.lm)
+summary(dutch.lm)
+summary(latin.lm)
+summary(greek.lm)
+summary(englishDutch.lm)
 
-pairs(cor_data)
+corAlpha.data = data.frame(dutchUni, highschoolCourses.alpha)
+corAlpha.cor = cor(cor.data, use = "pairwise.complete.obs")
 
+alpha.lm = lm(dutchUni ~ . , data=highschoolCourses.alpha)
+VIF(alpha.lm)
 
-alpha = data.fillna[data.fillna$Studies=='Dutch',]
-alphaCourses = alpha[,2:9]
-alphaMath = alpha$`Mathematics Univ`
-alphaDutch = alpha$`Dutch Univ`
+######### Question 1: Studie vakken ######### 
 
-gamma = data.fillna[data.fillna$Studies=='Law' | data.fillna$Studies=='Antropology' | data.fillna$Studies=='Business Administ.' | data.fillna$Studies=='Economics' | data.fillna$Studies=='Sociology',]
-gammaCourses = gamma[,2:9]
-gammaMath = gamma$`Mathematics Univ`
-gammaDutch = gamma$`Dutch Univ`
+categories = unique(data$Studies) 
+data$Studies = as.factor(data$Studies)
+levels(data$Studies)
 
-beta = data.fillna[data.fillna$Studies=='Chemistry' | data.fillna$Studies=='Computer Science'  | data.fillna$Studies=='Dentistry' | data.fillna$Studies=='Ecomometrics' | data.fillna$Studies=='Farmacology' | data.fillna$Studies=='Geology' | data.fillna$Studies=='Mathematics' | data.fillna$Studies=='Medicine' | data.fillna$Studies=='Physics',]
-betaCourses = beta[,2:9]
-betaMath = beta$`Mathematics Univ`
-betaDutch = beta$`Dutch Univ`
-
-
-ols = function(y1, data, Title){
-  multipleLinearRegression.lm = lm(y1 ~., data=data)
-  summary(multipleLinearRegression.lm)
-  
-  # multipleLinearRegression.lm = lm(y2 ~., data=data)
-  # summary(multipleLinearRegression.lm)
-} 
-
-ols(alphaDutch, alphaCourses, "Title")
-
-ols(gammaMath, gammaCourses, "Title")
-
-ols(betaDutch, betaCourses, "Title")
+grid3 <- matrix(c(1), nrow =1, ncol = 1)
+layout(grid3)
+barplot(prop.table(table(data$Studies)))
 
 
+group_by(data, data$Studies)  %>%
+  dplyr::summarise( count = n(),
+           mean = mean(data$MathUni, na.rm = TRUE),
+           sd = sd(data$MathUni, na.rm = TRUE)
+           )
+
+ggboxplot(data, x="Studies", y="MathUni", 
+          color = "Studies", palette = c(1:15),
+          order = c(levels(data$Studies)),
+          ylab = "math Uni Gtae", xlab = "Studies")
+
+group_by(data, data$Studies)  %>%
+  dplyr::summarise( count = n(),
+                    mean = mean(data$DutchUni, na.rm = TRUE),
+                    sd = sd(data$DutchUni, na.rm = TRUE)
+  )
+
+ggboxplot(data, x="Studies", y="DutchUni", 
+          color = "Studies", palette = c(1:15),
+          order = c(levels(data$Studies)),
+          ylab = "Dutch Uni Grade", xlab = "Studies")
 
 
+res.aov = aov(MathUni ~ Studies, data = data )
+summary(res.aov)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+pairwiset = pairwise.t.test(data$MathUni, data$Studies,
+                p.adjust.method = "BH")
 
 
