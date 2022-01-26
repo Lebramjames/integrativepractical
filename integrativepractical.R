@@ -1,19 +1,19 @@
 ######## installing Packages ######## 
 
-install.packages("readxl")
-install.packages("xtable")
-install.packages("mctest")
-install.packages("goft")
-install.packages("fitdistrplus")
-install.packages("logspline")
-install.packages("flexsurv")
-install.packages("reldist")
-install.packages("dplyr")
-install.packages("tseries")
-install.packages("regclass")
-install.packages("dplyr")
-install.packages("ggpubr")
-install.packages("SmartEDA")
+# install.packages("readxl")
+# install.packages("xtable")
+# install.packages("mctest")
+# install.packages("goft")
+# install.packages("fitdistrplus")
+# install.packages("logspline")
+# install.packages("flexsurv")
+# install.packages("reldist")
+# install.packages("dplyr")
+# install.packages("tseries")
+# install.packages("regclass")
+# install.packages("dplyr")
+# install.packages("ggpubr")
+# install.packages("SmartEDA")
 
 ######## Packages ######## 
 
@@ -47,7 +47,6 @@ colnames(data)[13] = 'DutchUni'
 highschoolCourses= data[,2:9]
 highschoolCourses.math = data[,2:5]
 highschoolCourses.alpha = data[6:9]
-highschoolCourses.alpha
 
 mathUni = data$MathUni
 dutchUni = data$DutchUni
@@ -62,13 +61,10 @@ uniDataBSA= uniData[uniData$`Number of ECT's`>=42,]
 
 summary(data)
 
-mathUni = data.fillna$`Mathematics Univ`
-dutchUni = data.fillna$`Dutch Univ`
-
 ######### Density Dependent Variables ######### 
 
 grid1 <- matrix(c(1,2), nrow =1, ncol = 2)
-layout(grid)
+layout(grid1)
 plot(density(data$MathUni), lwd = 2, main = "Density: Math Uni")
 plot(density(data$`Dutch Univ`), lwd = 2, main = "Density: Dutch Uni")
 
